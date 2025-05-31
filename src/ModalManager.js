@@ -25,7 +25,7 @@ class ModalManager {
             $("#modals-container").append("<div class='modal-target'></div>")
     }
 
-    push(target, backDropIsClose = false, backDropFade = "medium") {
+    push(target, backDropIsClose = false, backDropFade = "medium", callbacks = []) {
         var unmanagedTarget = htmx.find("[modal-is-managed='false']")
         if (unmanagedTarget === null || unmanagedTarget === undefined)
             return toastr.error("ModalManager: Could not find modal when pushing")
@@ -46,6 +46,7 @@ class ModalManager {
         this.modals.push({
             modal: target,
             modalId: target.modalId,
+            callbacks: callbacks,
             backDropIsClose: backDropIsClose,
             backDropFade: backDropFade
         })
@@ -74,7 +75,6 @@ class ModalManager {
             return
         if (this.top === -1)
             return toastr.error("ModalManager.PopFromBackdrop: No modals to pop")
-
         if (this.modals[this.top].backDropIsClose)
             this.pop()
     }
@@ -85,6 +85,16 @@ class ModalManager {
             return toastr.error("ModalManager: Could not find function when passing through")
 
         return helper[functionName](...data)
+    }
+
+    propagateCallback(callbackName, entity_id, entity) {
+        this.modals.forEach(entity_modal => {
+            if (entity_modal.modal.entityId !== entity_id)
+                return
+            if (entity_modal.callbacks.includes(callbackName)  === false)
+                return
+            entity_modal.modal[callbackName](entity)
+        })
     }
 
     addBlur = {
