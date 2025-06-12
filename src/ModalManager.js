@@ -75,11 +75,15 @@ class ModalManager {
             return
         if (this.top === -1)
             return toastr.error("ModalManager.PopFromBackdrop: No modals to pop")
-        if (this.modals[this.top].backDropIsClose)
+        if (this.modals[this.top].backDropIsClose) {
+            window.postMessage("ModalManager-popFromBackdrop", "*")
             this.pop()
+        }
     }
 
     proxy(functionName, ...data) {
+        if (this.modals.length < 1)
+            return console.error("ModalManager: No modals to procy to", functionName, data)
         var helper = this.modals[this.top].modal
         if (typeof helper[functionName] !== "function")
             return toastr.error("ModalManager: Could not find function when passing through")
